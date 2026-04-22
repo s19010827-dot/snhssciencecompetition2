@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SJA SNHS Science Competition II</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300;400;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --forest: #1e5631;
+  --forest-mid: #266840;
+  --forest-light: #2d7a4f;
+  --forest-pale: #e8f5ee;
+  --forest-pale2: #d4edde;
+  --green-bright: #3a9e62;
+  --gold: #c8860a;
+  --white: #ffffff;
+  --off-white: #f7faf8;
+  --ink: #0f2318;
+  --muted: #5a7a65;
+  --border: rgba(30,86,49,0.15);
+  --border-strong: rgba(30,86,49,0.3);
+  --slab: 'Roboto Slab', Georgia, serif;
+  --sans: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 300;
+  overflow-x: hidden;
+}
+
+/* ── GRID BACKGROUND ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(30,86,49,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30,86,49,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 18px 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid var(--border-strong);
+}
+.nav-logo {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--forest);
+}
+.nav-logo span { color: var(--muted); font-weight: 400; }
+.nav-links { display: flex; gap: 36px; }
+.nav-links a {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--forest); }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 40px 80px;
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--forest) 0%, var(--forest-mid) 50%, var(--forest-light) 100%);
+  color: var(--white);
+}
+
+/* Atom decoration */
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.08);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.orb-1 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%);
+  top: -100px; right: -100px;
+}
+.orb-2 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(58,158,98,0.25) 0%, transparent 70%);
+  bottom: -80px; left: -80px;
+}
+
+.hero-eyebrow {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.2s forwards;
+}
+.hero-title {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  color: var(--white);
+  opacity: 0;
+  animation: fadeUp 0.7s 0.4s forwards;
+}
+.hero-title em {
+  font-style: normal;
+  color: #7dd9a0;
+  display: block;
+}
+.hero-subtitle {
+  font-family: var(--slab);
+  font-weight: 300;
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.6s forwards;
+  letter-spacing: 0.04em;
+}
+.hero-meta {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 56px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.8s forwards;
+}
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.meta-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  font-weight: 400;
+}
+.meta-value {
+  font-family: var(--slab);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--white);
+}
+.meta-sep {
+  width: 1px;
+  background: rgba(255,255,255,0.2);
+  align-self: stretch;
+  margin: 4px 0;
+}
+
+.hero-cta {
+  opacity: 0;
+  animation: fadeUp 0.7s 1s forwards;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  background: var(--white);
+  color: var(--forest);
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 16px 40px;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover { background: #e8f5ee; transform: translateY(-2px); }
+.btn-secondary {
+  background: transparent;
+  color: var(--white);
+  font-family: var(--slab);
+  font-weight: 400;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 16px 40px;
+  border-radius: 3px;
+  text-decoration: none;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  transition: border-color 0.2s, background 0.2s;
+}
+.btn-secondary:hover { border-color: white; background: rgba(255,255,255,0.08); }
+
+/* ── COUNTDOWN ── */
+.countdown-section {
+  position: relative;
+  z-index: 1;
+  background: var(--forest-pale);
+  border-top: 1.5px solid var(--border-strong);
+  border-bottom: 1.5px solid var(--border-strong);
+  padding: 64px 40px;
+  text-align: center;
+}
+.section-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--forest);
+  font-weight: 600;
+  margin-bottom: 40px;
+}
+.countdown-grid {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.countdown-unit {
+  background: var(--white);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 24px 32px;
+  min-width: 110px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(30,86,49,0.08);
+}
+.countdown-unit::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--forest), var(--green-bright), var(--forest));
+}
+.countdown-num {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  line-height: 1;
+  color: var(--forest);
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+.countdown-lbl {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 8px;
+  display: block;
+}
+.countdown-sep {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: 2.5rem;
+  color: var(--border-strong);
+  align-self: center;
+  margin-bottom: 24px;
+}
+.signup-deadline {
+  font-family: var(--slab);
+  font-weight: 300;
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-top: 32px;
+}
+.signup-deadline strong { color: var(--gold); font-weight: 700; }
+
+/* ── SUBJECTS ── */
+.subjects-section {
+  position: relative;
+  z-index: 1;
+  padding: 80px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--white);
+}
+.section-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+.section-title {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  margin-bottom: 8px;
+  color: var(--forest);
+}
+.section-desc {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+.subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.subject-card {
+  background: var(--white);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 40px 32px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.subject-card:hover { transform: translateY(-4px); border-color: var(--forest); box-shadow: 0 8px 30px rgba(30,86,49,0.12); }
+.subject-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+}
+.bio::after { background: #2d9e5f; }
+.chem::after { background: #c8680a; }
+.phys::after { background: #2d6fbf; }
+.subject-icon {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  display: block;
+}
+.subject-name {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+.bio .subject-name { color: #1e6e3f; }
+.chem .subject-name { color: #a0520a; }
+.phys .subject-name { color: #1e4f9e; }
+.subject-detail {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── FORMAT SECTION ── */
+.format-section {
+  position: relative;
+  z-index: 1;
+  background: var(--forest);
+  border-top: 1.5px solid rgba(255,255,255,0.1);
+  border-bottom: 1.5px solid rgba(255,255,255,0.1);
+  padding: 80px 60px;
+}
+.format-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+}
+.format-col h3 {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: 1.4rem;
+  margin-bottom: 24px;
+  color: #7dd9a0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.format-col h3 .badge-round {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+.format-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.format-list li {
+  display: flex;
+  gap: 14px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.75);
+}
+.format-list li .num {
+  font-family: var(--slab);
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #7dd9a0;
+  min-width: 20px;
+  padding-top: 2px;
+}
+.points-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+.point-pill {
+  text-align: center;
+  padding: 12px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+.easy { border-color: rgba(125,217,160,0.4); background: rgba(125,217,160,0.1); }
+.easy .pts { color: #7dd9a0; }
+.med { border-color: rgba(240,195,80,0.4); background: rgba(240,195,80,0.1); }
+.med .pts { color: #f0c350; }
+.hard { border-color: rgba(255,130,100,0.4); background: rgba(255,130,100,0.1); }
+.hard .pts { color: #ff9080; }
+.pts {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: 1.4rem;
+  display: block;
+}
+.pts-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  display: block;
+  margin-top: 4px;
+}
+
+/* ── PRIZES ── */
+.prizes-section {
+  position: relative;
+  z-index: 1;
+  padding: 80px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--white);
+}
+.prizes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+.prize-group h4 {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--forest);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid var(--border-strong);
+}
+.prize-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.prize-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--forest-pale);
+  border-radius: 3px;
+  border-left: 3px solid transparent;
+}
+.prize-item:nth-child(1) { border-left-color: #d4a017; }
+.prize-item:nth-child(2) { border-left-color: #9e9e9e; }
+.prize-item:nth-child(3) { border-left-color: #a0650a; }
+.prize-item:nth-child(n+4) { border-left-color: var(--border-strong); }
+.prize-name {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+.prize-credit {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--forest);
+}
+
+/* ── POLICY ── */
+.policy-section {
+  position: relative;
+  z-index: 1;
+  background: var(--forest-pale);
+  border-top: 1.5px solid var(--border-strong);
+  padding: 80px 60px;
+}
+.policy-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.policy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 32px; }
+.policy-item {
+  display: flex;
+  gap: 12px;
+  background: var(--white);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 16px;
+  align-items: flex-start;
+}
+.policy-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.policy-text {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 0.8rem;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.bonus-box {
+  margin-top: 24px;
+  background: rgba(200,134,10,0.08);
+  border: 1.5px solid rgba(200,134,10,0.3);
+  border-radius: 4px;
+  padding: 20px 24px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.bonus-box .bonus-icon { font-size: 1.2rem; }
+.bonus-box p {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.bonus-box strong { color: var(--gold); font-weight: 600; }
+
+/* ── SIGNUP CTA ── */
+.signup-section {
+  position: relative;
+  z-index: 1;
+  padding: 100px 40px;
+  text-align: center;
+  overflow: hidden;
+  background: var(--forest-mid);
+  color: var(--white);
+}
+.signup-section::before {
+  content: '';
+  position: absolute;
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 65%);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+.signup-title {
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  margin-bottom: 16px;
+  position: relative;
+  color: var(--white);
+}
+.signup-sub {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 12px;
+  position: relative;
+}
+.signup-note {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: #7dd9a0;
+  margin-bottom: 48px;
+  letter-spacing: 0.05em;
+  position: relative;
+}
+.signup-btn-wrap { position: relative; }
+.btn-signup {
+  display: inline-block;
+  background: var(--white);
+  color: var(--forest);
+  font-family: var(--slab);
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 20px 60px;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+}
+.btn-signup:hover {
+  background: #e8f5ee;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+}
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1.5px solid var(--border-strong);
+  padding: 28px 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--white);
+}
+.footer-left {
+  font-family: var(--slab);
+  font-weight: 300;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.footer-left strong { color: var(--forest); font-weight: 800; }
+.footer-right {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 300;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s, transform 0.6s;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  nav { padding: 16px 24px; }
+  .nav-links { display: none; }
+  .subjects-grid { grid-template-columns: 1fr; }
+  .format-inner { grid-template-columns: 1fr; gap: 40px; }
+  .prizes-grid { grid-template-columns: 1fr; }
+  .policy-grid { grid-template-columns: 1fr; }
+  .subjects-section, .format-section, .prizes-section, .policy-section { padding: 60px 24px; }
+  footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">SNHS <span>Science Competition II</span></div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#format">Format</a>
+    <a href="#prizes">Prizes</a>
+    <a href="#policy">Policy</a>
+    <a href="#signup">Sign Up</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="about">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="hero-eyebrow">St. Johnsbury Academy Jeju · SNHS</div>
+  <h1 class="hero-title">
+    Science<br>
+    <em>Competition II</em>
+  </h1>
+  <p class="hero-subtitle">Biology · Chemistry · Physics</p>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <span class="meta-label">Date</span>
+      <span class="meta-value">May 30, 2026</span>
+    </div>
+    <div class="meta-sep"></div>
+    <div class="meta-item">
+      <span class="meta-label">Time</span>
+      <span class="meta-value">9:00 AM – 1:00 PM</span>
+    </div>
+    <div class="meta-sep"></div>
+    <div class="meta-item">
+      <span class="meta-label">Location</span>
+      <span class="meta-value">Mini PAC</span>
+    </div>
+    <div class="meta-sep"></div>
+    <div class="meta-item">
+      <span class="meta-label">Hosted by</span>
+      <span class="meta-value">SNHS Leaders</span>
+    </div>
+  </div>
+  <div class="hero-cta">
+    <a href="#signup" class="btn-primary">Register Now</a>
+    <a href="#format" class="btn-secondary">View Format</a>
+  </div>
+</section>
+
+<!-- COUNTDOWN -->
+<section class="countdown-section" id="countdown">
+  <div class="section-label">May 30, 2026 · Signup closes soon</div>
+  <div class="countdown-grid">
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-days">--</span>
+      <span class="countdown-lbl">Days</span>
+    </div>
+    <div class="countdown-sep">:</div>
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-hours">--</span>
+      <span class="countdown-lbl">Hours</span>
+    </div>
+    <div class="countdown-sep">:</div>
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-mins">--</span>
+      <span class="countdown-lbl">Minutes</span>
+    </div>
+    <div class="countdown-sep">:</div>
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-secs">--</span>
+      <span class="countdown-lbl">Seconds</span>
+    </div>
+  </div>
+  <p class="signup-deadline">until competition day — <strong>May 30, 2026 · 9:00 AM</strong></p>
+</section>
+
+<!-- SUBJECTS -->
+<section class="subjects-section reveal">
+  <div class="section-header">
+    <div class="section-label">Three Disciplines</div>
+    <h2 class="section-title">Test Your Knowledge</h2>
+    <p class="section-desc">10 questions per subject · 30 minutes per section · 30 total questions</p>
+  </div>
+  <div class="subjects-grid">
+    <div class="subject-card bio">
+      <span class="subject-icon">🧬</span>
+      <div class="subject-name">Biology</div>
+      <p class="subject-detail">Life sciences, cellular biology, genetics, ecology, and organism systems. 10 questions in 30 minutes.</p>
+    </div>
+    <div class="subject-card chem">
+      <span class="subject-icon">⚗️</span>
+      <div class="subject-name">Chemistry</div>
+      <p class="subject-detail">Atomic structure, reactions, stoichiometry, bonding, and chemical properties. 10 questions in 30 minutes.</p>
+    </div>
+    <div class="subject-card phys">
+      <span class="subject-icon">⚡</span>
+      <div class="subject-name">Physics</div>
+      <p class="subject-detail">Mechanics, energy, waves, electricity, and modern physics concepts. 10 questions in 30 minutes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FORMAT -->
+<section class="format-section" id="format">
+  <div class="format-inner">
+    <div class="format-col reveal">
+      <h3>Individual Round <span class="badge-round">Solo</span></h3>
+      <ul class="format-list">
+        <li><span class="num">01</span><span>30 minutes per section — Biology, Chemistry, Physics — 10 questions each</span></li>
+        <li><span class="num">02</span><span>90 minutes total · 30 questions across all three sections</span></li>
+        <li><span class="num">03</span><span>5-minute rest between each session (10 minutes total rest)</span></li>
+        <li><span class="num">04</span><span>Top individual scorers in each subject and overall will be recognized</span></li>
+      </ul>
+    </div>
+    <div class="format-col reveal">
+      <h3>Team Round <span class="badge-round">4-Person Max</span></h3>
+      <ul class="format-list">
+        <li><span class="num">01</span><span>Maximum 4 members per team. All members receive a single combined paper.</span></li>
+        <li><span class="num">02</span><span>12 total rounds. Each round has 1 question — a timer on the front screen sets the pace.</span></li>
+        <li><span class="num">03</span><span>Tiebreaker: tied teams compete head-to-head on the podium.</span></li>
+      </ul>
+      <div class="points-grid" style="margin-top:24px">
+        <div class="point-pill easy">
+          <span class="pts">3</span>
+          <span class="pts-label">Easy</span>
+        </div>
+        <div class="point-pill med">
+          <span class="pts">6</span>
+          <span class="pts-label">Medium</span>
+        </div>
+        <div class="point-pill hard">
+          <span class="pts">9</span>
+          <span class="pts-label">Hard</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIZES -->
+<section class="prizes-section" id="prizes">
+  <div class="section-header reveal">
+    <div class="section-label">Extra Credit Awards</div>
+    <h2 class="section-title">Winners & Rewards</h2>
+    <p class="section-desc">Available to students in Ms. Lovelace, Mr. Avila, Dr. Hahn, and Mr. Dombkowski's classes</p>
+  </div>
+  <div class="prizes-grid reveal">
+    <div class="prize-group">
+      <h4>🏆 Team Standings</h4>
+      <ul class="prize-list">
+        <li class="prize-item"><span class="prize-name">1st Place Team</span><span class="prize-credit">+5%</span></li>
+        <li class="prize-item"><span class="prize-name">2nd Place Team</span><span class="prize-credit">+4%</span></li>
+        <li class="prize-item"><span class="prize-name">3rd Place Team</span><span class="prize-credit">+3%</span></li>
+      </ul>
+    </div>
+    <div class="prize-group">
+      <h4>🥇 Individual Standings</h4>
+      <ul class="prize-list">
+        <li class="prize-item"><span class="prize-name">Individual 1st</span><span class="prize-credit">+7%</span></li>
+        <li class="prize-item"><span class="prize-name">Individual 2nd</span><span class="prize-credit">+5%</span></li>
+        <li class="prize-item"><span class="prize-name">Individual 3rd</span><span class="prize-credit">+3%</span></li>
+      </ul>
+    </div>
+    <div class="prize-group">
+      <h4>🧬 Subject Winners</h4>
+      <ul class="prize-list">
+        <li class="prize-item"><span class="prize-name">Biology Winner</span><span class="prize-credit">+5%</span></li>
+        <li class="prize-item"><span class="prize-name">Chemistry Winner</span><span class="prize-credit">+5%</span></li>
+        <li class="prize-item"><span class="prize-name">Physics Winner</span><span class="prize-credit">+5%</span></li>
+      </ul>
+    </div>
+    <div class="prize-group">
+      <h4>🎯 Participation Bonus</h4>
+      <ul class="prize-list">
+        <li class="prize-item"><span class="prize-name">All Participants (eligible classes)</span><span class="prize-credit">+1%</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- POLICY -->
+<section class="policy-section" id="policy">
+  <div class="policy-inner">
+    <div class="section-header reveal">
+      <div class="section-label">Rules & Regulations</div>
+      <h2 class="section-title">Competition Policy</h2>
+    </div>
+    <div class="policy-grid reveal">
+      <div class="policy-item">
+        <span class="policy-icon">📄</span>
+        <p class="policy-text">Blank papers are <strong style="color:#b03a2e">NOT accepted</strong> — submitting a blank answer sheet results in disqualification and no bonus points.</p>
+      </div>
+      <div class="policy-item">
+        <span class="policy-icon">🚫</span>
+        <p class="policy-text">Clear evidence of guessing all answers will result in <strong style="color:#b03a2e">disqualification</strong>.</p>
+      </div>
+      <div class="policy-item">
+        <span class="policy-icon">📵</span>
+        <p class="policy-text">Misconduct during the competition — including unauthorized use of technology — leads to <strong style="color:#b03a2e">immediate disqualification</strong>.</p>
+      </div>
+      <div class="policy-item">
+        <span class="policy-icon">🚪</span>
+        <p class="policy-text">Exiting the testing room without permission results in disqualification. You <strong style="color:#b03a2e">must</strong> participate in both individual and team rounds.</p>
+      </div>
+    </div>
+    <div class="bonus-box reveal">
+      <span class="bonus-icon">⭐</span>
+      <p>Bonus credit available for students in <strong>Ms. Lovelace</strong>, <strong>Mr. Avila</strong>, <strong>Dr. Hahn</strong>, and <strong>Mr. Dombkowski's</strong> classes — just showing up earns you a <strong>+1% bonus</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNUP CTA -->
+<section class="signup-section" id="signup">
+  <h2 class="signup-title reveal">Ready to Compete?</h2>
+  <p class="signup-sub reveal">Only team leaders need to register.</p>
+  <p class="signup-note reveal">Include your team name, leader name, and all member grades in the form.</p>
+  <div class="signup-btn-wrap reveal">
+    <a href="https://docs.google.com/forms/d/11P70zoy-PFEr5m1IYzbQ81aJS859Hj4NEu1QnN2qeCE/viewform" target="_blank" class="btn-signup">
+      Sign Up Your Team →
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left"><strong>SNHS</strong> Science Competition II · St. Johnsbury Academy Jeju</div>
+  <div class="footer-right">May 30, 2026 · Mini PAC · 9:00 AM</div>
+</footer>
+
+<script>
+// ── COUNTDOWN ──
+function updateCountdown() {
+  const target = new Date('2026-05-30T09:00:00');
+  const now = new Date();
+  const diff = target - now;
+
+  if (diff <= 0) {
+    document.getElementById('cd-days').textContent = '00';
+    document.getElementById('cd-hours').textContent = '00';
+    document.getElementById('cd-mins').textContent = '00';
+    document.getElementById('cd-secs').textContent = '00';
+    return;
+  }
+
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hrs  = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+  const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+  const secs = Math.floor((diff % (1000*60)) / 1000);
+
+  document.getElementById('cd-days').textContent  = String(days).padStart(2,'0');
+  document.getElementById('cd-hours').textContent = String(hrs).padStart(2,'0');
+  document.getElementById('cd-mins').textContent  = String(mins).padStart(2,'0');
+  document.getElementById('cd-secs').textContent  = String(secs).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+// ── SCROLL REVEAL ──
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
