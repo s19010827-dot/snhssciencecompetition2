@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNHS Science Competition — Secure Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300;400;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --forest: #1e5631;
+  --forest-mid: #266840;
+  --forest-light: #2d7a4f;
+  --forest-pale: #e8f5ee;
+  --green-bright: #3a9e62;
+  --white: #ffffff;
+  --ink: #0f2318;
+  --muted: #5a7a65;
+  --border: rgba(30,86,49,0.2);
+  --red: #b03a2e;
+  --gold: #c8860a;
+  --slab: 'Roboto Slab', Georgia, serif;
+  --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+html, body { height: 100%; overflow: hidden; background: var(--white); }
+body { font-family: var(--sans); font-weight: 300; color: var(--ink); user-select: none; -webkit-user-select: none; }
+
+/* ── SCREENS ── */
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: var(--white); z-index: 10; transition: opacity 0.4s; }
+.screen.hidden { opacity: 0; pointer-events: none; }
+
+/* ── PIN SCREEN ── */
+#pin-screen { background: linear-gradient(160deg, var(--forest), var(--forest-mid)); color: white; }
+#pin-screen h1 { font-family: var(--slab); font-weight: 800; font-size: 2.4rem; margin-bottom: 8px; text-align: center; }
+#pin-screen p { font-size: 0.9rem; opacity: 0.7; margin-bottom: 36px; text-align: center; }
+.pin-box { background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 32px 40px; width: 100%; max-width: 400px; }
+.pin-box label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.7; display: block; margin-bottom: 8px; }
+.pin-box input { width: 100%; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; padding: 12px 16px; font-family: var(--slab); font-size: 1.4rem; font-weight: 800; color: white; letter-spacing: 0.3em; text-align: center; outline: none; margin-bottom: 20px; }
+.pin-box input::placeholder { opacity: 0.4; letter-spacing: 0.1em; font-size: 1rem; font-weight: 300; }
+.pin-error { color: #ff9080; font-size: 0.78rem; text-align: center; margin-bottom: 12px; min-height: 20px; }
+.btn-green { background: white; color: var(--forest); font-family: var(--slab); font-weight: 800; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 32px; border: none; border-radius: 3px; cursor: pointer; width: 100%; transition: background 0.2s; }
+.btn-green:hover { background: var(--forest-pale); }
+
+/* ── PLEDGE SCREEN ── */
+#pledge-screen h2 { font-family: var(--slab); font-weight: 800; font-size: 1.8rem; color: var(--forest); margin-bottom: 24px; text-align: center; }
+.pledge-box { background: var(--forest-pale); border: 1.5px solid var(--border); border-radius: 6px; padding: 28px 32px; max-width: 640px; width: 100%; margin-bottom: 24px; }
+.pledge-box p { font-size: 0.88rem; line-height: 1.8; color: var(--ink); margin-bottom: 12px; }
+.pledge-box p:last-child { margin-bottom: 0; }
+.pledge-check { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; cursor: pointer; }
+.pledge-check input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--forest); cursor: pointer; }
+.pledge-check span { font-size: 0.82rem; color: var(--ink); }
+.btn-forest { background: var(--forest); color: white; font-family: var(--slab); font-weight: 800; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 48px; border: none; border-radius: 3px; cursor: pointer; transition: background 0.2s; }
+.btn-forest:hover { background: var(--forest-mid); }
+.btn-forest:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+/* ── TEST SCREEN ── */
+#test-screen { padding: 0; flex-direction: column; justify-content: flex-start; background: var(--white); overflow: hidden; }
+
+/* Header bar */
+.test-header { width: 100%; background: var(--forest); color: white; padding: 14px 32px; display: flex; align-items: center; gap: 20px; flex-shrink: 0; }
+.test-header .section-badge { font-family: var(--slab); font-weight: 800; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 5px 12px; border-radius: 2px; }
+.test-header .q-progress { font-size: 0.7rem; opacity: 0.75; letter-spacing: 0.08em; }
+.test-header .spacer { flex: 1; }
+.timer-wrap { display: flex; align-items: center; gap: 8px; }
+.timer-label { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.65; }
+.timer-num { font-family: var(--slab); font-weight: 800; font-size: 1.5rem; letter-spacing: 0.05em; font-variant-numeric: tabular-nums; }
+.timer-num.urgent { color: #ff9080; animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* Violation bar */
+.violation-bar { width: 100%; background: rgba(176,58,46,0.9); color: white; padding: 8px 32px; font-size: 0.75rem; letter-spacing: 0.05em; display: none; flex-shrink: 0; }
+.violation-bar.show { display: block; }
+
+/* Progress bar */
+.progress-track { width: 100%; height: 3px; background: var(--forest-pale); flex-shrink: 0; }
+.progress-fill { height: 100%; background: var(--green-bright); transition: width 0.4s; }
+
+/* Question area */
+.question-area { flex: 1; overflow-y: auto; padding: 40px 60px; max-width: 900px; width: 100%; margin: 0 auto; }
+.section-header-pill { display: inline-block; background: var(--forest-pale); border: 1px solid var(--border); color: var(--forest); font-family: var(--slab); font-weight: 800; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 6px 14px; border-radius: 2px; margin-bottom: 28px; }
+.passage-box { background: var(--forest-pale); border-left: 3px solid var(--forest); border-radius: 0 4px 4px 0; padding: 20px 24px; margin-bottom: 28px; font-size: 0.82rem; line-height: 1.7; color: var(--ink); }
+.passage-box strong { display: block; font-family: var(--slab); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--forest); margin-bottom: 8px; }
+.q-number { font-family: var(--slab); font-weight: 800; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.q-text { font-family: var(--slab); font-weight: 400; font-size: 1.05rem; line-height: 1.65; color: var(--ink); margin-bottom: 28px; }
+.options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; }
+.option { display: flex; align-items: flex-start; gap: 14px; padding: 14px 18px; border: 1.5px solid var(--border); border-radius: 4px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.option:hover { border-color: var(--forest); background: var(--forest-pale); }
+.option.selected { border-color: var(--forest); background: var(--forest-pale); }
+.option-letter { font-family: var(--slab); font-weight: 800; font-size: 0.8rem; color: var(--forest); min-width: 22px; padding-top: 1px; }
+.option-text { font-size: 0.88rem; line-height: 1.6; color: var(--ink); }
+
+/* Navigation */
+.nav-bar { width: 100%; max-width: 900px; margin: 0 auto; padding: 16px 60px 24px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; border-top: 1px solid var(--border); }
+.btn-nav { background: transparent; border: 1.5px solid var(--border); color: var(--muted); font-family: var(--slab); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 24px; border-radius: 3px; cursor: pointer; transition: all 0.15s; }
+.btn-nav:hover { border-color: var(--forest); color: var(--forest); }
+.btn-nav.primary { background: var(--forest); border-color: var(--forest); color: white; }
+.btn-nav.primary:hover { background: var(--forest-mid); }
+.btn-nav:disabled { opacity: 0.35; cursor: not-allowed; }
+.nav-spacer { flex: 1; }
+.answered-indicator { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.05em; }
+
+/* ── RESULT SCREEN ── */
+#result-screen { overflow-y: auto; }
+#result-screen h2 { font-family: var(--slab); font-weight: 800; font-size: 2rem; color: var(--forest); margin-bottom: 8px; text-align: center; }
+.result-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 40px; text-align: center; }
+.score-cards { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 40px; }
+.score-card { background: var(--forest-pale); border: 1.5px solid var(--border); border-radius: 6px; padding: 24px 32px; text-align: center; min-width: 160px; }
+.score-card .sc-num { font-family: var(--slab); font-weight: 800; font-size: 2.4rem; color: var(--forest); line-height: 1; }
+.score-card .sc-total { font-family: var(--slab); font-weight: 300; font-size: 1rem; color: var(--muted); }
+.score-card .sc-label { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.score-card.overall { border-color: var(--forest); }
+.score-card.overall .sc-num { font-size: 3rem; }
+.violations-note { font-size: 0.78rem; color: var(--red); text-align: center; margin-bottom: 24px; }
+.btn-restart { background: var(--forest); color: white; font-family: var(--slab); font-weight: 800; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 48px; border: none; border-radius: 3px; cursor: pointer; }
+
+/* ── FULLSCREEN WARNING ── */
+#fs-warning { position: fixed; inset: 0; background: rgba(15,35,24,0.97); z-index: 999; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 40px; }
+#fs-warning.show { display: flex; }
+#fs-warning h2 { font-family: var(--slab); font-weight: 800; font-size: 2rem; margin-bottom: 16px; color: #ff9080; }
+#fs-warning p { font-size: 0.9rem; opacity: 0.8; margin-bottom: 32px; max-width: 500px; }
+#fs-warning .violation-count { font-family: var(--slab); font-weight: 800; font-size: 1rem; color: #ff9080; margin-bottom: 24px; }
+
+/* ── SUBMITTED OVERLAY ── */
+#submitted-overlay { position: fixed; inset: 0; background: rgba(15,35,24,0.97); z-index: 998; display: none; align-items: center; justify-content: center; }
+#submitted-overlay.show { display: flex; }
+#submitted-overlay p { color: white; font-family: var(--slab); font-size: 1.5rem; font-weight: 800; }
+
+@media (max-width: 700px) {
+  .question-area { padding: 24px 20px; }
+  .nav-bar { padding: 12px 20px; }
+  .test-header { padding: 12px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div class="screen" id="pin-screen">
+  <h1>SNHS Science Competition</h1>
+  <p>Enter the exam PIN provided by your proctor to begin.</p>
+  <div class="pin-box">
+    <label>Exam PIN</label>
+    <input type="password" id="pin-input" placeholder="Enter PIN" maxlength="10" autocomplete="off">
+    <div class="pin-error" id="pin-error"></div>
+    <button class="btn-green" onclick="checkPin()">Enter Exam</button>
+  </div>
+</div>
+
+<!-- PLEDGE SCREEN -->
+<div class="screen hidden" id="pledge-screen">
+  <h2>Academic Integrity Pledge</h2>
+  <div class="pledge-box">
+    <p>By proceeding, you agree to the following:</p>
+    <p>• You will complete this exam entirely on your own without any outside assistance, notes, or devices.</p>
+    <p>• You will not communicate with other students during the exam.</p>
+    <p>• You understand that leaving the exam window, switching tabs, or pressing disallowed keys will be flagged as a violation.</p>
+    <p>• Three violations will result in automatic submission of your exam.</p>
+    <p>• Blank answer sheets and clear evidence of guessing will result in disqualification per competition policy.</p>
+  </div>
+  <label class="pledge-check">
+    <input type="checkbox" id="pledge-checkbox" onchange="togglePledgeBtn()">
+    <span>I understand and agree to the Academic Integrity Pledge above.</span>
+  </label>
+  <button class="btn-forest" id="pledge-btn" disabled onclick="startExam()">Begin Exam</button>
+</div>
+
+<!-- TEST SCREEN -->
+<div class="screen hidden" id="test-screen">
+  <div class="test-header">
+    <span class="section-badge" id="section-badge">Biology</span>
+    <span class="q-progress" id="q-progress">Question 1 of 15</span>
+    <div class="spacer"></div>
+    <div class="timer-wrap">
+      <span class="timer-label">Time</span>
+      <span class="timer-num" id="timer-num">30:00</span>
+    </div>
+  </div>
+  <div class="violation-bar" id="violation-bar"></div>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <div class="question-area" id="question-area"></div>
+  <div class="nav-bar">
+    <button class="btn-nav" id="btn-prev" onclick="prevQ()" disabled>← Previous</button>
+    <span class="answered-indicator" id="answered-indicator"></span>
+    <div class="nav-spacer"></div>
+    <button class="btn-nav primary" id="btn-next" onclick="nextQ()">Next →</button>
+  </div>
+</div>
+
+<!-- RESULT SCREEN -->
+<div class="screen hidden" id="result-screen">
+  <h2>Exam Complete</h2>
+  <p class="result-sub">SJA SNHS Science Competition II · Individual Round</p>
+  <div class="score-cards" id="score-cards"></div>
+  <div class="violations-note" id="violations-note"></div>
+  <button class="btn-restart" onclick="location.reload()">Return to Start</button>
+</div>
+
+<!-- FULLSCREEN WARNING OVERLAY -->
+<div id="fs-warning">
+  <h2>⚠ Violation Detected</h2>
+  <p>You have left the exam window. This is a violation of exam policy. Please return to the exam immediately.</p>
+  <div class="violation-count" id="fs-vcount"></div>
+  <button class="btn-green" style="max-width:260px" onclick="dismissWarning()">Return to Exam</button>
+</div>
+
+<!-- SUBMITTED OVERLAY -->
+<div id="submitted-overlay">
+  <p>Submitting exam...</p>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIGURATION
+// ─────────────────────────────────────────────
+const EXAM_PIN = "SNHS2026";
+const SECTION_TIME = 30 * 60; // 30 minutes per section in seconds
+
+// ─────────────────────────────────────────────
+// QUESTION DATA
+// ─────────────────────────────────────────────
+const SECTIONS = [
+  {
+    name: "Biology",
+    color: "#1e6e3f",
+    questions: [
+      {
+        q: "The main products of glycolysis include…",
+        opts: ["cAMP", "CO₂", "RuBisCo", "NADPH", "ATP"],
+        ans: 4
+      },
+      {
+        q: "Which of the following processes increases genetic diversity?",
+        opts: [
+          "RNA transcription from a DNA template",
+          "Translation of mRNA by ribosomes",
+          "Signal transduction via transmembrane proteins",
+          "Crossing over between homologous chromosomes during meiosis",
+          "DNA replication in mitosis"
+        ],
+        ans: 3
+      },
+      {
+        q: "Which of the following is the biome found at 30° N and 30° S?",
+        opts: ["Rain forests", "Tundras", "Coniferous forests", "Deserts", "Chaparral"],
+        ans: 3
+      },
+      {
+        q: "In photosynthesis, chloroplasts convert light energy into chemical energy stored in ATP. Which of the following best describes how this chemical energy can be used to mobilize cells?",
+        opts: [
+          "Hydrolysis of ATP to ADP releases free energy, delivered to cytoskeletal proteins, which use it to propel cells.",
+          "Hydrolysis of ATP to ADP releases free energy, delivered to ribosomal proteins, which translate more proteins for cell movement.",
+          "Hydrolysis of ATP to ADP releases free energy, delivered to protein channels to uptake ions that create an electrochemical gradient to propel the cell.",
+          "Dehydration synthesis of ATP from ADP releases free energy, delivered to the Golgi apparatus to package proteins for movement.",
+          "Dehydration synthesis of ATP from ADP releases free energy, delivered to the nucleus to transcribe mRNA related to cell movement."
+        ],
+        ans: 0
+      },
+      {
+        q: "Crossing over is a method for organisms to increase genetic diversity. A researcher modeled the structure of the mutant portion of a translocated ACS1-F gene. Which of the following questions will the researcher be most likely to answer from the provided information?",
+        opts: [
+          "Does increasing the genetic diversity of unicellular organisms involve a decrease in the rate of cellular respiration?",
+          "Does increasing genetic mutation decrease the chance of survival among unicellular organisms?",
+          "Can a translocation error in crossing over increase the rate of ACS1-F mRNA production?",
+          "Can a translocation error in crossing over lead to a decrease in pH level among some prokaryotes?",
+          "None of the above can be answered."
+        ],
+        ans: 2
+      },
+      {
+        passage: "Questions 6–8 refer to the SDF-1/CXCR4 signaling pathway and data on hDPSC migration. SDF-1 (stromal cell-derived factor-1) is widely expressed during dental pulp inflammation. Researchers investigated the effect of siCXCR4, siCDC42, AMD3100, LY294002, and PF573228 on hDPSC migration. When overactivated, SDF-1/CXCR4 receptors can cause cancer cells to proliferate.",
+        q: "A researcher dosed varying amounts of AMD3100, siRNA, and both to a stromal cell. Which conclusion can be drawn from the data showing that the AMD3100 + siRNA combination produced the lowest cancer cell mRNA levels between 60–80 µL?",
+        opts: [
+          "Cancer cell proliferation can be controlled by administering about 60–80 µL of a mix of siRNA and AMD3100. RISC is likely more active in the presence of AMD3100, but cannot function to its full potential when AMD3100 is administered alone.",
+          "Cancer cell proliferation can be controlled by administering about 100 µL of siRNA. AMD3100 is a competitive inhibitor.",
+          "Cancer cell proliferation can be controlled by administering about 100 µL of siRNA. AMD3100 is an inducible operon.",
+          "Cancer cell proliferation can be controlled by about 60–80 µL mix. Overdosing over 80 µL creates an unfavorable environment.",
+          "Cancer cell proliferation can be controlled by about 10 µL of siRNA alone when the slope of the graph hits zero."
+        ],
+        ans: 0
+      },
+      {
+        q: "Which treatment would most likely decrease hDPSC migration by disrupting SDF-1/CXCR4 signaling?",
+        opts: [
+          "LY294002, because it acts downstream and enhances the initial SDF-1/CXCR4 interaction.",
+          "PF573228, because it stimulates focal adhesion kinase and strengthens signaling for hDPSC migration.",
+          "siCDC42, because it increases expression of CXCR4 on the plasma membrane.",
+          "AMD3100, because it functions as a CXCR4 antagonist and directly prevents SDF-1 binding.",
+          "siCXCR4, because it reduces CXCR4 receptor expression, limiting SDF-1's ability to initiate the signaling cascade."
+        ],
+        ans: 4
+      },
+      {
+        q: "SDF-1 stimulation affects GSK3β as part of the Akt pathway, helping drive β-catenin–related signals that increase hDPSC migration. Which modified pathway will result in a decrease in hDPSC migration?",
+        opts: [
+          "Pathway A: PTEN added alongside Akt — inhibiting Akt activity and reducing GSK3β phosphorylation",
+          "Pathway B: PTEN added but GSK3β removed from the pathway",
+          "Pathway C: LY294002 added to inhibit PI3K upstream",
+          "Pathway D: LY294002 added alongside a phosphorylation feedback loop",
+          "Pathway E: LY294002 with a blocked G-protein downstream of CXCR4"
+        ],
+        ans: 0
+      },
+      {
+        passage: "Questions 9–12 refer to Gitelman syndrome (GS). GS is caused by a mutation in the SLC gene encoding a Na⁺/Cl⁻ cotransporter. Two mutant alleles: SLC-gs1 (single nucleotide deletion creating a premature stop codon) and SLC-gs2 (disrupted splicing site preventing intron removal).",
+        q: "A team of researchers investigated the effect of pH on the internal metabolic rate of a eukaryotic cell. Which of the following is the best explanation of the drop in respiration rate when the pH of the environment is too low?",
+        opts: [
+          "The shape of the glucose transporter was altered, interfering with glucose intake.",
+          "The active site of phosphofructokinase was altered, hindering the conversion of fructose-6-phosphate to fructose-1,6-diphosphate.",
+          "The concentration of the conjugate acid of NaF decreased, hindering the inhibition of converting phosphoglycerate to phosphoenolpyruvate.",
+          "The electrochemical gradient from high H⁺ concentration led NAD⁺ ions to leave the cell, decreasing the rate of G3P conversion.",
+          "Since entropy can only increase, the endothermic nature of the net reaction was unfavored under high H⁺ concentration."
+        ],
+        ans: 1
+      },
+      {
+        q: "Individual III-1 has the GS phenotype, while individual III-2 does not. What is the probability that another sibling of III-1 and III-2 will be a carrier of GS but not have the GS phenotype?",
+        opts: ["0%", "25%", "50%", "75%", "100%"],
+        ans: 2
+      },
+      {
+        q: "Which of the following individuals is predicted to have the greatest average concentration of Na⁺?",
+        opts: ["I-1", "III-2", "II-3", "II-6", "III-3"],
+        ans: 3
+      },
+      {
+        q: "Kidney cells from individual III-1 and a cell with the CLCNKB mutation were crossed 20 times. Out of 20 crosses, 8 showed 'No GS'. What is the map distance between the SLC and CLCNKB genes?",
+        opts: ["0 cM", "10 cM", "20 cM", "30 cM", "40 cM"],
+        ans: 4
+      },
+      {
+        passage: "Questions 13–15 refer to a magnetoreception experiment. Four individually trained pigeons were required to discriminate between the presence and absence of an induced magnetic field anomaly in a wooden tunnel. Correct choices were rewarded with food; incorrect choices resulted in a time penalty.",
+        q: "It is best understood that field strength and accuracy can…",
+        opts: [
+          "be directly proportional, so the null hypothesis should state that stronger magnetic fields always cause higher accuracy",
+          "be unrelated, so the null hypothesis is that pigeons will perform significantly above 50% accuracy regardless of magnetic conditions",
+          "influence one another, but any effect of field strength on accuracy must be tested against the null hypothesis that pigeons choose correctly at chance frequency",
+          "be inversely related, so the null hypothesis is that stronger magnetic fields reduce pigeon accuracy in every trial",
+          "have a causal relationship that is proven whenever accuracy differs between individual pigeons"
+        ],
+        ans: 2
+      },
+      {
+        q: "Baseline pigeon discrimination was about 60–65% correct, but performance dropped toward chance when the ophthalmic branch of the trigeminal nerve was sectioned. In European robins, Cry4 transcripts are detected in the retina. Which statement is most strongly supported?",
+        opts: [
+          "Pigeons and European robins must be the same species because they both use the Cry4a gene.",
+          "The presence of a similar gene in both species suggests they likely inherited it from a common ancestor, though its function may have been modified by natural selection in each lineage.",
+          "Because both species use Cry4a, the null hypothesis is that they evolved magnetoreception independently by random chance.",
+          "If both species show magnetoreception, then the Cry4a gene must have arisen recently in only these two species.",
+          "The use of Cry4a in both species proves all birds have identical DNA sequences for magnetoreception."
+        ],
+        ans: 1
+      },
+      {
+        q: "One pigeon completes 80 baseline trials (56 correct, 24 incorrect) and 80 post-trigeminal disruption trials (38 correct, 42 incorrect). Which of the following best evaluates the results?",
+        opts: [
+          "For the baseline condition, χ² = 12.8, so the null hypothesis should be rejected; for the post-trigeminal condition, χ² = 0.2, so the data are consistent with chance performance. These results support the idea that trigeminal input contributes to magnetic detection.",
+          "For the baseline condition, χ² = 0.2, so the null hypothesis should be rejected; for the post-trigeminal condition, χ² = 12.8, so trigeminal disruption improves magnetoreception.",
+          "For the baseline condition, χ² = 6.4, so the pigeons are exactly at chance; for the post-trigeminal condition, χ² = 0.0, proving Cry4a is inactive.",
+          "Because the pigeon made more correct than incorrect choices in both conditions, the null hypothesis should be rejected for both without calculation.",
+          "A chi-square test is not appropriate because the data are percentages rather than categories."
+        ],
+        ans: 0
+      }
+    ]
+  },
+  {
+    name: "Chemistry",
+    color: "#a0520a",
+    questions: [
+      {
+        q: "Bond enthalpy is greatest in which of the following molecules?",
+        opts: ["BF₄", "CF₄", "CaCO₃", "CO₂", "CH₃COOH"],
+        ans: 3
+      },
+      {
+        q: "A student has collected data from a 1.000 L pressure chamber containing 1.700 moles of an unknown chemical. Based on measured pressures at varying temperatures, which molecule is most likely in the chamber?",
+        opts: ["SO₂", "XeF₄", "CO₂", "CF₄", "H₂O₂"],
+        ans: 0
+      },
+      {
+        q: "For the combustion reaction CH₃(CH₂)₁₀CH₃ + O₂ → a CO₂ + b H₂O, what is a + b?",
+        opts: ["24", "25", "26", "27", "28"],
+        ans: 1
+      },
+      {
+        q: "The mass spectrum of a pure element shows peaks at atomic masses 76, 77, 78, 80, and 82, with the largest peak at 80. Based on the data, which is the most likely element?",
+        opts: ["Ge", "As", "Se", "Br", "Kr"],
+        ans: 2
+      },
+      {
+        passage: "Questions 5–6 refer to glycine. Glycine, H₃N⁺CH₂COOH, is a non-essential amino acid. A zwitterion has both positive and negative charges but is overall neutral. The isoelectric point (pI) is the average of the polyprotic pKₐs. A student titrates glycine dissolved in dilute acid with 0.100 M NaOH(aq). The titration curve shows equivalence points at approximately pH 2.4 and pH 9.6.",
+        q: "What is the concentration of protons at the isoelectric point?",
+        opts: ["1×10⁻² M", "1×10⁻³ M", "1×10⁻⁴ M", "1×10⁻⁵ M", "1×10⁻⁶ M"],
+        ans: 4
+      },
+      {
+        q: "Which of the following equations best represents the stepwise dissociation of glycine?",
+        opts: [
+          "H₃N⁺CH₂COOH + H₂O ⇌ H₃N⁺CH₂COO⁻ + H₃O⁺; then H₃N⁺CH₂COO⁻ + H₂O ⇌ H₂NCH₂COO⁻ + H₃O⁺",
+          "H₃N⁺CH₂COOH + H₂O ⇌ H₂NCH₂COO⁻ + H₃O⁺ (single step)",
+          "H₃N⁺CH₂COOH + H₂O ⇌ H₂NCH₂COO⁻ + H₃O⁺; then H₂NCH₂COO⁻ + H₂O ⇌ H₂NCH⁻COO⁻ + H₃O⁺",
+          "H₃N⁺CH₂COOH + H₂O ⇌ H₂NCH⁻COO⁻ + H₃O⁺ (single step)",
+          "H₃N⁺CH₂COOH + H₂O ⇌ H₂NCH₂COO⁻ + H₃O⁺; then H₂NCH₂COO⁻ + H₂O ⇌ H₂NCH⁻COO⁻ + H₄O²⁺"
+        ],
+        ans: 0
+      },
+      {
+        q: "Three gas containers (left: N₂O at 1.00 atm, volume V; middle: O₂ at 1.71 atm, volume V; right: unknown gas, volume Vₓ) are connected. After removing the sealant, total pressure is P_total. Which expression gives the moles of gas in the rightmost container?",
+        opts: [
+          "P_total(2V + Vₓ) / RT",
+          "[P_total(V + Vₓ) – 2.71V] / RT",
+          "[P_total(2V + Vₓ) – 1.71V] / RT",
+          "[P_total(2V + Vₓ) – 2.71V] / RT",
+          "[P_total(2V + Vₓ) – 2.71(2V)] / RT"
+        ],
+        ans: 3
+      },
+      {
+        passage: "Questions 8–9 refer to the Haber process: N₂ + 3H₂ ⇌ 2NH₃, ΔH° = –92 kJ/mol, ΔS° = –198.3 J/mol·K. The reaction uses an iron catalyst. A researcher plots enthalpy vs. temperature.",
+        q: "Which of the following best estimates the equilibrium constant K_eq for the Haber process at 1 atm and 723 K?",
+        opts: ["K_eq = 4.51×10⁵", "K_eq = 4.51×10⁻⁵", "K_eq = 5.10×10³", "K_eq = 5.10×10⁻³", "K_eq = 2.31×10⁻⁴"],
+        ans: 4
+      },
+      {
+        q: "Which of the following statements best describes why the entropy change is negative for the Haber process?",
+        opts: [
+          "At a molecular level, heavier gas particles indicate less freedom of motion, so the reaction is not kinetically favored.",
+          "At a molecular level, collisions between gas particles indicate a greater chance of successful reactions, granting more freedom of motion.",
+          "At a molecular level, fewer gas particles indicate less freedom of motion, so the reaction is not kinetically favored.",
+          "From a macroscopic point of view, since this reaction takes place at extremely high temperatures, kinetic favorability can be disregarded.",
+          "From a macroscopic point of view, the average kinetic energy is conserved, so there is no need for molecules to transform into lower-energy molecules."
+        ],
+        ans: 2
+      },
+      {
+        q: "EDTA is a powerful hexadentate chelating agent. Its molecular diagram shows four labeled carbons (A, B, C, D) near two nitrogen atoms. Which labeled carbon is the chiral center?",
+        opts: ["A", "B", "C", "D", "A chiral center does not exist because it is an enantiomer."],
+        ans: 4
+      },
+      {
+        q: "The zinc-copper Daniell cell setup has two cells connected in series to a voltmeter. The equilibrium constant of a single Daniell cell is K_eq = 1.5×10³⁷. What is the voltage measured in the voltmeter?",
+        opts: ["1.10 V", "2.20 V", "0.55 V", "0.01 V", "0.02 V"],
+        ans: 1
+      },
+      {
+        passage: "Questions 12–14 refer to L-glutathione (γ-Glu-Cys-Gly). L-glutathione is a tripeptide that helps lysosomes break down extracellular wastes. The name 'L' refers to geometric configuration, not optical rotation.",
+        q: "A researcher found that the pH of the lysosome matrix declines significantly after releasing L-glutathione. Which best describes this change?",
+        opts: [
+          "The low pKₐ of the glutamic acid residue alpha carbon contributes. Symmetric stereochemistry increases intermolecular forces favoring protonation.",
+          "The low pKₐ of the glutamic acid residue alpha carbon contributes. Asymmetric chiral center locations mean resonance is not favored, so protonation is favored.",
+          "The low pKₐ of the glutamic acid residue alpha carbon contributes. Electron-withdrawing stabilization allows resonance structures that keep the conjugate base stable.",
+          "The low pKₐ of the cysteine residue alpha carbon contributes. Neighboring amide and thiol groups have stronger electronegativity, allowing easy protonation.",
+          "The low pKₐ of the cysteine residue alpha carbon contributes. Intramolecular interaction with the glutamic acid alpha carbon allows low-barrier electron exchange."
+        ],
+        ans: 2
+      },
+      {
+        q: "A researcher investigated the UV absorbance of L-glutathione in methanol. Which structural feature most strongly accounts for absorption in the far-UV region?",
+        opts: [
+          "Saturated C–C bonds only",
+          "The sulfur atom only",
+          "The two chiral centers",
+          "Peptide and carboxyl carbonyl groups only",
+          "None of the above"
+        ],
+        ans: 3
+      },
+      {
+        q: "L-glutathione contains a glycine residue (achiral α-carbon). Suppose the glycine residue is replaced with alanine. Which best describes the consequence?",
+        opts: [
+          "The molecule gains an additional chiral center, and steric hindrance near that residue increases.",
+          "The molecule loses a chiral center, and steric hindrance decreases.",
+          "The number of chiral centers remains unchanged, but steric hindrance increases.",
+          "The molecule gains an additional chiral center, but steric hindrance decreases.",
+          "The molecule gains an additional chiral center, but steric hindrance remains essentially unchanged because alanine and glycine are both amino acids."
+        ],
+        ans: 0
+      },
+      {
+        q: "The IUPAC name for the molecule H₃C–CH₂–C(=O)–CH₂–CH₂–C(=O)–OCH₃ is…",
+        opts: ["Methyl-4-oxooctanoate", "Ethyl-4-oxohexanoate", "Methyl-4-oxoheptanoate", "Ethyl-4-oxoheptanoate", "Methyl-4-oxohexanoate"],
+        ans: 4
+      }
+    ]
+  },
+  {
+    name: "Physics",
+    color: "#1e4f9e",
+    questions: [
+      {
+        q: "Three wheels are arranged together: Wheel B (radius R, period T_B), Wheel A (radius 2R/3), Wheel C (radius R/4). The wheels turn without slipping. Which correctly relates T_A to T_C?",
+        opts: ["T_A = 3T_C/8", "T_A = 2T_C/3", "T_A = T_C", "T_A = 8T_C/3", "T_A = T_C/6"],
+        ans: 3
+      },
+      {
+        q: "Two blocks are on a frictionless surface. Block A moves with initial velocity v₀ toward stationary Block B. They stick and move at v₀/3. Which block has greater mass?",
+        opts: ["Block A", "Block B", "Neither; their masses are the same", "Cannot be determined without knowing masses", "Cannot be determined because the loss of kinetic energy indicates loss of mass"],
+        ans: 1
+      },
+      {
+        q: "A 60 kg person stands at the end of a deck of length L (mass 300 kg, volume 400 L, square cross-section of side l). What is the center of mass of the person-deck system?",
+        opts: ["x_cm = 5L/12", "x_cm = 7L/12", "x_cm = L/2", "x_cm = L/6", "x_cm = 11L/12"],
+        ans: 1
+      },
+      {
+        q: "A block of mass m (initial velocity +2 m/s east) collides elastically with stationary block M. After collision, m moves at –1 m/s. What is the velocity of block M after the collision?",
+        opts: ["+1 m/s", "–1 m/s", "+2 m/s", "0 m/s", "Cannot be determined without knowing individual masses"],
+        ans: 0
+      },
+      {
+        q: "A person pushes block of mass m up a hill at angle θ. The coefficient of kinetic friction is 0.5. What is the correct expression for F_person?",
+        opts: ["mg sin θ", "mg sin θ – 0.5 mg cos θ", "mg sin θ + 0.5 mg cos θ", "0.5 mg cos θ", "0"],
+        ans: 2
+      },
+      {
+        q: "Block M (on horizontal table, μ = 0.25) is connected via string over pulley to block m and a spring (k). Block m released from rest; spring stretches 10 cm. What is the correct expression for k? (M >> m)",
+        opts: ["100M – 25m", "25M – 100m", "100M + 25m", "25M + 100m", "None of the above"],
+        ans: 0
+      },
+      {
+        q: "A particle (+Q) enters a magnetic field B (into page) at velocity v. A second particle (charge unknown) has half the radius of the first at the same velocity. Which row correctly compares magnetic force, field, and flux for both particles when completely inside the region?",
+        opts: [
+          "F_B,+Q = F_B,q; B_+Q = B_q; Φ_B,+Q = 4Φ_B,q",
+          "F_B,+Q = F_B,q; B_+Q > B_q; Φ_B,+Q = 2Φ_B,q",
+          "F_B,+Q = F_B,q; B_+Q = B_q; Φ_B,+Q = Φ_B,q",
+          "F_B,+Q > F_B,q; B_+Q > B_q; Φ_B,+Q = 2Φ_B,q",
+          "F_B,+Q > F_B,q; B_+Q = B_q; Φ_B,+Q = 4Φ_B,q"
+        ],
+        ans: 4
+      },
+      {
+        q: "A ball attached to a spring undergoes circular motion about an axle. Axle radius r, spring length x, spring constant k, string pulled at angle θ to normal, system reaches angular speed ω in time t₁, distance from ball to axle center = R. What is the correct expression for tension F_T?",
+        opts: [
+          "F_T = mRω²/sin θ",
+          "F_T = mR²ω/(rt₁ cos θ)",
+          "F_T = mR²ω/(rt₁ sin θ)",
+          "F_T = k(R–x)/sin θ",
+          "F_T = mRω/(t₁ sin θ)"
+        ],
+        ans: 2
+      },
+      {
+        passage: "Questions 9–10 refer to a block of mass m hanging vertically by two light strings (length r, angle θ to block top plane) connected to a central string (length L) attached to a pivot. Horizontal force F_app is applied to the block.",
+        q: "Which expression gives the velocity of the block when it is at the same level as the pivot?",
+        opts: [
+          "v = √[2(F_app – mg)(L + r cos θ)/m]",
+          "v = √[2(F_app – mg)(L + r sin θ)/m]",
+          "v = √[2F_app(L + r sin θ)/m]",
+          "v = √[2(F_app – mg)(L + r)/m]",
+          "v = √[2g(L + r sin θ)]"
+        ],
+        ans: 1
+      },
+      {
+        q: "Which expression gives the tension force in the left string when the block reaches its maximum height?",
+        opts: [
+          "T_L = ½(mg/sin θ + F_app/cos θ)",
+          "T_L = ½(mg/sin θ – F_app/cos θ)",
+          "T_L = mg/sin θ – F_app/cos θ",
+          "T_L = ½(mg – F_app)/sin θ",
+          "T_L = F_app/cos θ"
+        ],
+        ans: 1
+      },
+      {
+        q: "Block m (in dynamic equilibrium) is attached to a string (length l), a horizontal spring (constant k), and an identical vertical spring. Block 2m collides with m at velocity v and sticks. They reach maximum height at angle θ to the normal. What is the total mechanical energy of the system after the blocks come to rest?",
+        opts: [
+          "3mgl(1 – cos θ) + kl² sin² θ",
+          "3mgl(1 – cos θ) + ½kl² sin² θ + ½kl² cos² θ",
+          "mgl(1 – cos θ) + ½kl² sin² θ + ½kl²(1 – cos θ)²",
+          "3mgl(1 – cos θ) + ½kl² sin² θ + ½kl²(1 – cos θ)²",
+          "3mgl(l sin θ) + ½kl² sin² θ + ½kl²(1 – cos θ)²"
+        ],
+        ans: 3
+      },
+      {
+        q: "A sphere of mass m initially moves with velocity v₀, then rolls down a ramp at angle θ. What is the correct expression for the minimum coefficient of static friction for rolling without slipping?",
+        opts: ["μ_s = tan θ", "μ_s = (5/7) tan θ", "μ_s = (2/5) tan θ", "μ_s = (1/5) tan θ", "μ_s = (2/7) tan θ"],
+        ans: 4
+      },
+      {
+        q: "A ray of light passes through calcite (t = 1 m). The retardation formula is δ = (2π/λ)(n_e – n_o)t. Measured data shows |birefringence| ≈ 0.172, n_o ≈ 1.658, retardation ≈ 1.834×10⁸. At which wavelength was this conducted, and which direction is light affected?",
+        opts: [
+          "λ = 589.3 nm, and the light travels more slowly in the horizontal (z) direction.",
+          "λ = 589.3 nm, and the light travels faster in the horizontal (z) direction.",
+          "λ = 589.3 nm, and the light travels more slowly in the vertical (x) direction.",
+          "λ = 294.6 nm, and the light travels faster in the horizontal (z) direction.",
+          "λ = 294.6 nm, and the light travels more slowly in the vertical (x) direction."
+        ],
+        ans: 0
+      },
+      {
+        passage: "Questions 14–15 refer to an Atwood's machine with two 2 kg blocks attached to identical springs (k = 200 N/m). Both springs are displaced 0.37 m from equilibrium after release.",
+        q: "What is the tension of the string?",
+        opts: ["54 N", "74 N", "94 N", "148 N", "188 N"],
+        ans: 2
+      },
+      {
+        q: "The frictional force between string and pulley is non-negligible (μ = 0.35). The pulley is a thin disk: radius r = 40 cm, mass 4 kg. What is the net rotational kinetic energy of the system 2 seconds after release?",
+        opts: ["600 J", "751 J", "944 J", "1882 J", "3003 J"],
+        ans: 1
+      }
+    ]
+  }
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let currentSection = 0;
+let currentQ = 0;
+let answers = [
+  new Array(SECTIONS[0].questions.length).fill(-1),
+  new Array(SECTIONS[1].questions.length).fill(-1),
+  new Array(SECTIONS[2].questions.length).fill(-1)
+];
+let timerInterval = null;
+let timeLeft = SECTION_TIME;
+let violations = 0;
+let examActive = false;
+let transitionPending = false;
+
+// ─────────────────────────────────────────────
+// PIN CHECK
+// ─────────────────────────────────────────────
+function checkPin() {
+  const val = document.getElementById('pin-input').value.trim().toUpperCase();
+  if (val === EXAM_PIN) {
+    document.getElementById('pin-screen').classList.add('hidden');
+    document.getElementById('pledge-screen').classList.remove('hidden');
+  } else {
+    document.getElementById('pin-error').textContent = 'Incorrect PIN. Please try again.';
+    document.getElementById('pin-input').value = '';
+  }
+}
+document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
+
+function togglePledgeBtn() {
+  document.getElementById('pledge-btn').disabled = !document.getElementById('pledge-checkbox').checked;
+}
+
+// ─────────────────────────────────────────────
+// START EXAM
+// ─────────────────────────────────────────────
+function startExam() {
+  document.getElementById('pledge-screen').classList.add('hidden');
+  document.getElementById('test-screen').classList.remove('hidden');
+  examActive = true;
+  renderQuestion();
+  startTimer();
+  requestFullscreen();
+  attachSecurityListeners();
+}
+
+// ─────────────────────────────────────────────
+// RENDER QUESTION
+// ─────────────────────────────────────────────
+function renderQuestion() {
+  const sec = SECTIONS[currentSection];
+  const qObj = sec.questions[currentQ];
+  const totalQ = sec.questions.length;
+
+  document.getElementById('section-badge').textContent = sec.name;
+  document.getElementById('q-progress').textContent = `Question ${currentQ + 1} of ${totalQ}`;
+  const totalAnswered = answers[currentSection].filter(a => a !== -1).length;
+  document.getElementById('answered-indicator').textContent = `${totalAnswered} of ${totalQ} answered`;
+
+  // Progress bar: across all sections
+  const totalDone = answers[0].filter(a=>a!==-1).length + answers[1].filter(a=>a!==-1).length + answers[2].filter(a=>a!==-1).length;
+  const totalAll = SECTIONS.reduce((s,sec)=>s+sec.questions.length, 0);
+  document.getElementById('progress-fill').style.width = ((totalDone / totalAll) * 100) + '%';
+
+  // Prev button
+  document.getElementById('btn-prev').disabled = (currentQ === 0 && currentSection === 0);
+
+  // Next/Submit button
+  const isLastOfSection = currentQ === totalQ - 1;
+  const isLastSection = currentSection === SECTIONS.length - 1;
+  const btn = document.getElementById('btn-next');
+  if (isLastOfSection && isLastSection) {
+    btn.textContent = 'Submit Exam';
+    btn.style.background = '#b03a2e';
+    btn.style.borderColor = '#b03a2e';
+  } else if (isLastOfSection) {
+    btn.textContent = 'Next Section →';
+    btn.style.background = '';
+    btn.style.borderColor = '';
+  } else {
+    btn.textContent = 'Next →';
+    btn.style.background = '';
+    btn.style.borderColor = '';
+  }
+
+  // Build HTML
+  let html = `<div class="section-header-pill">${sec.name}</div>`;
+  if (qObj.passage) {
+    html += `<div class="passage-box"><strong>Context</strong>${qObj.passage}</div>`;
+  }
+  html += `<div class="q-number">Question ${currentQ + 1}</div>`;
+  html += `<div class="q-text">${qObj.q}</div>`;
+  html += `<div class="options">`;
+  const letters = ['A','B','C','D','E'];
+  qObj.opts.forEach((opt, i) => {
+    const sel = answers[currentSection][currentQ] === i ? 'selected' : '';
+    html += `<div class="option ${sel}" onclick="selectOption(${i})">
+      <span class="option-letter">(${letters[i]})</span>
+      <span class="option-text">${opt}</span>
+    </div>`;
+  });
+  html += `</div>`;
+  document.getElementById('question-area').innerHTML = html;
+  document.getElementById('question-area').scrollTop = 0;
+}
+
+function selectOption(i) {
+  answers[currentSection][currentQ] = i;
+  renderQuestion();
+}
+
+function nextQ() {
+  const sec = SECTIONS[currentSection];
+  const isLastOfSection = currentQ === sec.questions.length - 1;
+  const isLastSection = currentSection === SECTIONS.length - 1;
+
+  if (isLastOfSection && isLastSection) {
+    submitExam();
+    return;
+  }
+  if (isLastOfSection) {
+    // Move to next section
+    currentSection++;
+    currentQ = 0;
+    timeLeft = SECTION_TIME; // reset timer for new section
+    renderQuestion();
+    return;
+  }
+  currentQ++;
+  renderQuestion();
+}
+
+function prevQ() {
+  if (currentQ > 0) {
+    currentQ--;
+  } else if (currentSection > 0) {
+    currentSection--;
+    currentQ = SECTIONS[currentSection].questions.length - 1;
+  }
+  renderQuestion();
+}
+
+// ─────────────────────────────────────────────
+// TIMER
+// ─────────────────────────────────────────────
+function startTimer() {
+  timeLeft = SECTION_TIME;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      autoAdvanceSection();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  const el = document.getElementById('timer-num');
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.className = 'timer-num' + (timeLeft <= 120 ? ' urgent' : '');
+}
+
+function autoAdvanceSection() {
+  if (currentSection < SECTIONS.length - 1) {
+    currentSection++;
+    currentQ = 0;
+    timeLeft = SECTION_TIME;
+    startTimer();
+    renderQuestion();
+  } else {
+    submitExam();
+  }
+}
+
+// ─────────────────────────────────────────────
+// ANTI-CHEAT SECURITY
+// ─────────────────────────────────────────────
+function requestFullscreen() {
+  const el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+}
+
+function attachSecurityListeners() {
+  // Visibility / tab switch
+  document.addEventListener('visibilitychange', () => {
+    if (!examActive) return;
+    if (document.hidden) triggerViolation('Tab switch or window minimized detected.');
+  });
+
+  // Window blur
+  window.addEventListener('blur', () => {
+    if (!examActive) return;
+    triggerViolation('Window focus lost.');
+  });
+
+  // Fullscreen exit
+  document.addEventListener('fullscreenchange', () => {
+    if (!examActive) return;
+    if (!document.fullscreenElement) triggerViolation('Fullscreen mode exited.');
+  });
+
+  // Right-click
+  document.addEventListener('contextmenu', e => { e.preventDefault(); });
+
+  // Keyboard blocks
+  document.addEventListener('keydown', e => {
+    const blocked = [
+      e.key === 'F12',
+      e.ctrlKey && ['c','u','s','p','a','f'].includes(e.key.toLowerCase()),
+      e.metaKey && ['c','u','s','p','a','f'].includes(e.key.toLowerCase()),
+      e.altKey && e.key === 'Tab',
+      e.key === 'PrintScreen',
+    ];
+    if (blocked.some(Boolean)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+
+  // Copy/paste
+  document.addEventListener('copy', e => e.preventDefault());
+  document.addEventListener('cut', e => e.preventDefault());
+  document.addEventListener('paste', e => e.preventDefault());
+}
+
+function triggerViolation(reason) {
+  violations++;
+  const bar = document.getElementById('violation-bar');
+  bar.textContent = `⚠ Violation ${violations}/3: ${reason}`;
+  bar.classList.add('show');
+  setTimeout(() => bar.classList.remove('show'), 5000);
+
+  const fsw = document.getElementById('fs-warning');
+  document.getElementById('fs-vcount').textContent = `Violation ${violations} of 3 — ${3 - violations} remaining before auto-submit.`;
+  fsw.classList.add('show');
+
+  if (violations >= 3) {
+    setTimeout(() => {
+      fsw.classList.remove('show');
+      submitExam();
+    }, 2500);
+  }
+}
+
+function dismissWarning() {
+  document.getElementById('fs-warning').classList.remove('show');
+  requestFullscreen();
+}
+
+// ─────────────────────────────────────────────
+// SUBMIT
+// ─────────────────────────────────────────────
+function submitExam() {
+  examActive = false;
+  clearInterval(timerInterval);
+  document.getElementById('submitted-overlay').classList.add('show');
+
+  setTimeout(() => {
+    document.getElementById('submitted-overlay').classList.remove('show');
+    showResults();
+  }, 1500);
+}
+
+function showResults() {
+  document.getElementById('test-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.remove('hidden');
+
+  let totalCorrect = 0;
+  let totalQ = 0;
+  let cardsHTML = '';
+
+  SECTIONS.forEach((sec, si) => {
+    let correct = 0;
+    sec.questions.forEach((q, qi) => {
+      if (answers[si][qi] === q.ans) correct++;
+    });
+    totalCorrect += correct;
+    totalQ += sec.questions.length;
+    cardsHTML += `<div class="score-card">
+      <div class="sc-num">${correct}</div>
+      <div class="sc-total">/ ${sec.questions.length}</div>
+      <div class="sc-label">${sec.name}</div>
+    </div>`;
+  });
+
+  cardsHTML = `<div class="score-card overall">
+    <div class="sc-num">${totalCorrect}</div>
+    <div class="sc-total">/ ${totalQ}</div>
+    <div class="sc-label">Overall Score</div>
+  </div>` + cardsHTML;
+
+  document.getElementById('score-cards').innerHTML = cardsHTML;
+
+  if (violations > 0) {
+    document.getElementById('violations-note').textContent =
+      `⚠ ${violations} violation${violations > 1 ? 's' : ''} recorded during this exam session.`;
+  }
+
+  // Exit fullscreen on results
+  if (document.exitFullscreen) document.exitFullscreen();
+}
+</script>
+</body>
+</html>
